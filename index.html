@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        html,body{
+            width: 100%;
+            height: 100%;
+        }
+        *{
+            margin: 0;
+            height: 0;
+        }
+    </style>
+</head>
+<body style="height:100%;width: 100%;">
+<canvas id="canvas" style="height:100%;width: 100%"></canvas>
+<script>
+    var w= document.documentElement.clientWidth||document.body.clientWidth;
+    var h= document.documentElement.clientHeight||document.body.clientHeight;
+    var canvas_height=h;
+    var canvas_width=w;
+    //得到绘制开始点
+    var MARGIN_TOP=canvas_height/5;
+    var MARGIN_LEFT=canvas_width/5;
+    //计算半径
+    var RADUIS=canvas_width*3/5/108-1;
+    //设置倒计时时间
+    var endtime= new Date();
+    endtime.setTime(endtime.getTime()+7200*1000);
+    var curShowtimesecond =0;
+    //放置弹跳小球的数组
+    var balls=[];
+    var colors=['#4ff74f','#f65231','#617df5','#e2f561','#f361f5','#61aaf5','#f42e2e','#7cebfb','#ff9f07','#a0f79c'];
+
+    window.onload=function(){
+        var canvas =document.getElementById('canvas');
+        var context =canvas.getContext('2d');
+
+        canvas.height = canvas_height;
+        canvas.width = canvas_width;
+
+        setInterval(function(){
+            //小球绘制函数
+            render(context);
+            //小球及时间改变函数
+            update();
+        },50);
+    }
+
+
+
+    function update(){
+        var nextShowtimesecond =getcurrentShowtime();
+        //得到改变数据
+        var nexthours = parseInt(nextShowtimesecond/3600);
+        var nextmintues = parseInt((nextShowtimesecond-nexthours*3600)/60);
+        var nextseconds = parseInt(nextShowtimesecond%60);
+        //得到当前时间数据
+        var curhours = parseInt(curShowtimesecond/3600);
+        var curmintues = parseInt((curShowtimesecond-curhours*3600)/60);
+        var curseconds = parseInt(curShowtimesecond%60);
+        //数字改变时候将要弹出的数组写入balls数组内
+        if(nextseconds!=curseconds){
+            if(parseInt(curhours/10)!=parseInt(nexthours/10)){
+                addballs(MARGIN_LEFT+0,MARGIN_TOP,parseInt(curhours/10));
+            }
+            if(parseInt(curhours%10)!=parseInt(nexthours%10)){
+                addballs(MARGIN_LEFT+15*(RADUIS+1),MARGIN_TOP,parseInt(curhours%10));
+            }
+            if(parseInt(curmintues/10)!=parseInt(nextmintues/10)){
+                addballs(MARGIN_LEFT+39*(RADUIS+1),MARGIN_TOP,parseInt(curmintues/10));
+            }
+            if(parseInt(curmintues%10)!=parseInt(nextmintues%10)){
+                addballs(MARGIN_LEFT+54*(RADUIS+1),MARGIN_TOP,parseInt(curmintues%10));
+            }
+            if(parseInt(curseconds/10)!=parseInt(nextseconds/10)){
+                addballs(MARGIN_LEFT+78*(RADUIS+1),MARGIN_TOP,parseInt(curseconds/10));
+            }
+            if(parseInt(curseconds%10)!=parseInt(nextseconds%10)){
+                addballs(MARGIN_LEFT+93*(RADUIS+1),MARGIN_TOP,parseInt(curseconds%10));
+            }
+            //改变当前时间
+            curShowtimesecond = nextShowtimesecond;
+        }
+        //弹出小球改变动画
+        updateballs()
+    }
+
+
+    //复制将弹出的小球属性封装对象，并加入balls数组中
+    function addballs(x,y,num){
+        for(var i=0;i<digit[num].length;i++){
+            for(var j=0;j<digit[num][i].length;j++){
+                if(digit[num][i][j]==1){
+                    var aballs = {
+                        x:x+j*2*(RADUIS+1)+(RADUIS+1),
+                        y:y+i*2*(RADUIS+1)+(RADUIS+1),
+                        g:1.5+Math.random(),
+                        vy:-5,
+                        color:colors[Math.floor(Math.random()*colors.length)],
+                        vx:Math.pow(-1,Math.ceil(Math.random()*1000))*4
+                    }
+                    balls.push(aballs);
+                }
+            }
+        }
+    }
+    //小球的动画函数
+    function updateballs(){
+        //控制小球的轨迹函数
+        for(var i=0;i<balls.length;i++){
+            balls[i].x +=balls[i].vx;
+            balls[i].vy +=balls[i].g;
+            balls[i].y +=balls[i].vy;
+            if(balls[i].y>=canvas_height-RADUIS){
+                balls[i].y=canvas_height-RADUIS;
+                balls[i].vy=-balls[i].vy*0.75;
+                }
+            }
+        //将滚出屏幕小球删除的函数
+        var cnt=0;
+        for(var i=0;i<balls.length;i++){
+            if(balls[i].x+RADUIS>0&&balls[i].x<canvas_width-RADUIS){
+                balls[cnt++]=balls[i];
+            }
+        }
+        while (balls.length>cnt){
+            balls.pop();
+        }
+
+    }
+    //获取倒计时时间的函数并返回秒数
+    function getcurrentShowtime(){
+        var curtime= new Date();
+        var ret=endtime.getTime()-curtime.getTime();
+        ret=Math.round(ret/1000);
+        return ret>0?ret:0;
+    }
+    //小球绘制函数
+    function  render(cxt){
+        //计时数字的绘制
+        cxt.clearRect(0,0,cxt.canvas.width,cxt.canvas.width);
+        var hour=parseInt(curShowtimesecond/3600);
+        var minutes=parseInt((curShowtimesecond-hour*3600)/60);
+        var seconds=parseInt(curShowtimesecond%60);
+        renderdigit(MARGIN_LEFT, MARGIN_TOP, parseInt(hour/10),cxt);
+        renderdigit(MARGIN_LEFT+15*(RADUIS+1), MARGIN_TOP, parseInt(hour%10),cxt);
+        renderdigit(MARGIN_LEFT+30*(RADUIS+1), MARGIN_TOP, 10,cxt);
+        renderdigit(MARGIN_LEFT+39*(RADUIS+1), MARGIN_TOP, parseInt(minutes/10),cxt);
+        renderdigit(MARGIN_LEFT+54*(RADUIS+1), MARGIN_TOP, parseInt(minutes%10),cxt);
+        renderdigit(MARGIN_LEFT+69*(RADUIS+1), MARGIN_TOP, 10,cxt);
+        renderdigit(MARGIN_LEFT+78*(RADUIS+1), MARGIN_TOP, parseInt(seconds/10),cxt);
+        renderdigit(MARGIN_LEFT+93*(RADUIS+1), MARGIN_TOP, parseInt(seconds%10),cxt);
+        //弹出小球的绘制
+        for(var i=0; i<balls.length;i++){
+            cxt.fillStyle=balls[i].color;
+
+            cxt.beginPath();
+            cxt.arc(balls[i].x,balls[i].y,RADUIS,0,2*Math.PI);
+            cxt.closePath();
+
+            cxt.fill()
+        }
+
+    }
+
+    //计时数字的具体绘制函数
+    function  renderdigit(x,y,num,cxt){
+        cxt.fillStyle='#324322';
+
+        for(var i=0; i< digit[num].length ; i++){
+            for(var j=0;j<digit[num][i].length;j++){
+                if (digit[num][i][j]==1){
+                    cxt.beginPath();
+                    cxt.arc(x+2*j*(RADUIS+1)+(RADUIS+1),y+2*i*(RADUIS+1)+(RADUIS+1),RADUIS,0,2*Math.PI);
+                    cxt.closePath();
+
+                    cxt.fill();
+                }
+            }
+        }
+    }
+</script>
+<script src="js/digit.js"></script>
+</body>
+</html>
