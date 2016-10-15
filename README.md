@@ -4,7 +4,7 @@
 
 **一个炫丽的Canvas计时器动画**
 
-[演示DOME](https://findwisdom.github.io/canvs_time/)  
+[演示DOME](http://find_wisdom.coding.me/canvas_times)
 
 
 
